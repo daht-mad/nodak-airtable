@@ -1,0 +1,13 @@
+{
+  "default": "main",
+  "bases": {
+    "main": {
+      "id": "appXXXXXXXXXXXXXXX",
+      "description": "Main workspace"
+    },
+    "partners": {
+      "id": "appYYYYYYYYYYYYYYY",
+      "description": "Partner management"
+    }
+  }
+}
