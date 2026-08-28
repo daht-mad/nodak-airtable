@@ -6,11 +6,11 @@
  * 단일 레코드를 생성합니다.
  *
  * @usage
- * bun run skills/airtable-sdk/scripts/create.ts --table <name> --fields '<json>'
- * bun run skills/airtable-sdk/scripts/create.ts --help
+ * bun run skills/nodak-airtable/scripts/create.ts --table <name> --fields '<json>'
+ * bun run skills/nodak-airtable/scripts/create.ts --help
  *
  * @example
- * bun run skills/airtable-sdk/scripts/create.ts --table Users --fields '{"이름":"홍길동","이메일":"hong@example.com"}'
+ * bun run skills/nodak-airtable/scripts/create.ts --table Users --fields '{"이름":"홍길동","이메일":"hong@example.com"}'
  */
 
 import type { FieldSet } from 'airtable'
@@ -50,11 +50,11 @@ async function main() {
 
   if (args.help) {
     printHelp(
-      'bun run skills/airtable-sdk/scripts/create.ts --table <name> --fields \'<json>\'',
+      'bun run skills/nodak-airtable/scripts/create.ts --table <name> --fields \'<json>\'',
       HELP_OPTIONS
     )
     console.log('Example:')
-    console.log('  bun run skills/airtable-sdk/scripts/create.ts --table Users --fields \'{"이름":"홍길동"}\'')
+    console.log('  bun run skills/nodak-airtable/scripts/create.ts --table Users --fields \'{"이름":"홍길동"}\'')
     console.log('')
     process.exit(0)
   }

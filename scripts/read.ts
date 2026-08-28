@@ -6,13 +6,13 @@
  * 레코드를 조회합니다. Pagination을 자동 처리합니다.
  *
  * @usage
- * bun run skills/airtable-sdk/scripts/read.ts --table <name> [options]
- * bun run skills/airtable-sdk/scripts/read.ts --help
+ * bun run skills/nodak-airtable/scripts/read.ts --table <name> [options]
+ * bun run skills/nodak-airtable/scripts/read.ts --help
  *
  * @example
- * bun run skills/airtable-sdk/scripts/read.ts --table Users
- * bun run skills/airtable-sdk/scripts/read.ts --table Users --filter '{상태}="활성"' --max 50
- * bun run skills/airtable-sdk/scripts/read.ts --table Users --fields '["이름","이메일"]'
+ * bun run skills/nodak-airtable/scripts/read.ts --table Users
+ * bun run skills/nodak-airtable/scripts/read.ts --table Users --filter '{상태}="활성"' --max 50
+ * bun run skills/nodak-airtable/scripts/read.ts --table Users --fields '["이름","이메일"]'
  */
 
 import type { FieldSet } from 'airtable'
@@ -46,6 +46,7 @@ interface ReadResult {
 const HELP_OPTIONS = [
   { flag: '--base <alias|id>', desc: 'Base alias or ID (optional)' },
   { flag: '--table <name>', desc: '테이블 이름 (필수)' },
+  { flag: '--view <name|id>', desc: '뷰 이름 또는 ID (선택)' },
   { flag: '--filter <formula>', desc: 'filterByFormula (선택)' },
   { flag: '--max <n>', desc: '최대 레코드 수 (기본: 모든 레코드)' },
   { flag: '--fields <json>', desc: '조회할 필드 배열 (선택)' },
@@ -57,13 +58,13 @@ async function main() {
 
   if (args.help) {
     printHelp(
-      'bun run skills/airtable-sdk/scripts/read.ts --table <name> [--filter <formula>] [--max <n>] [--fields <json>]',
+      'bun run skills/nodak-airtable/scripts/read.ts --table <name> [--filter <formula>] [--max <n>] [--fields <json>]',
       HELP_OPTIONS
     )
     console.log('Examples:')
-    console.log('  bun run skills/airtable-sdk/scripts/read.ts --table Users --max 10')
-    console.log('  bun run skills/airtable-sdk/scripts/read.ts --table Users --filter \'{상태}="활성"\' --max 50')
-    console.log('  bun run skills/airtable-sdk/scripts/read.ts --table Users --fields \'["이름","이메일"]\'')
+    console.log('  bun run skills/nodak-airtable/scripts/read.ts --table Users --max 10')
+    console.log('  bun run skills/nodak-airtable/scripts/read.ts --table Users --filter \'{상태}="활성"\' --max 50')
+    console.log('  bun run skills/nodak-airtable/scripts/read.ts --table Users --fields \'["이름","이메일"]\'')
     console.log('')
     process.exit(0)
   }
@@ -78,6 +79,7 @@ async function main() {
 
   const maxRecords = args.max ? parseInt(args.max as string, 10) : undefined
   const filterByFormula = args.filter as string | undefined
+  const view = args.view as string | undefined
 
   let fieldsToRetrieve: string[] | undefined
   if (args.fields && typeof args.fields === 'string') {
@@ -99,10 +101,12 @@ async function main() {
       maxRecords?: number
       filterByFormula?: string
       fields?: string[]
+      view?: string
     } = {}
     if (maxRecords) queryOptions.maxRecords = maxRecords
     if (filterByFormula) queryOptions.filterByFormula = filterByFormula
     if (fieldsToRetrieve) queryOptions.fields = fieldsToRetrieve
+    if (view) queryOptions.view = view
 
     const records = await fetchWithRetry(() =>
       table(args.table as string, baseArg).select(queryOptions).all()

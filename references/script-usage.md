@@ -1,6 +1,6 @@
 # 스크립트 상세 사용법
 
-모든 스크립트는 `~/.claude/skills/airtable-sdk/scripts/`에 위치.
+모든 스크립트는 `~/.claude/skills/nodak-airtable/scripts/`에 위치.
 
 ## 공통: --base 옵션
 

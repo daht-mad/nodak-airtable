@@ -22,17 +22,44 @@ Claude Code에서 Airtable을 쓰는 방법은 크게 두 가지입니다:
 
 ### 1. 스킬 설치
 
+**맥 (Terminal):**
+
 ```bash
 # Claude Code 스킬 폴더에 클론
 cd ~/.claude/skills
-git clone https://github.com/daht-mad/airtable-sdk.git
+git clone https://github.com/daht-mad/nodak-airtable.git
 
 # 의존성 설치
-cd airtable-sdk
+cd nodak-airtable
 bun install
 ```
 
 > **Bun이 없다면?** → `curl -fsSL https://bun.sh/install | bash`
+
+**윈도우 (PowerShell):**
+
+```powershell
+# Bun 설치 (없다면. 설치 후 PowerShell 창을 새로 연다)
+irm bun.sh/install.ps1 | iex
+
+# Claude Code 스킬 폴더에 클론
+mkdir -Force $env:USERPROFILE\.claude\skills
+cd $env:USERPROFILE\.claude\skills
+git clone https://github.com/daht-mad/nodak-airtable.git
+
+# 의존성 설치
+cd nodak-airtable
+bun install
+```
+
+> **git이 없다면?** 클론 대신 ZIP으로 받는다:
+> ```powershell
+> cd $env:USERPROFILE\.claude\skills
+> iwr https://github.com/daht-mad/nodak-airtable/archive/refs/heads/main.zip -OutFile skill.zip
+> Expand-Archive skill.zip -DestinationPath .
+> Rename-Item nodak-airtable-main nodak-airtable
+> Remove-Item skill.zip
+> ```
 
 ### 2. API Key 발급
 
@@ -46,9 +73,21 @@ bun install
 
 발급받은 토큰을 환경변수로 설정합니다:
 
+**맥:**
+
 ```bash
 # ~/.zshrc 또는 ~/.bashrc에 추가
 export AIRTABLE_API_KEY="patXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+```
+
+**윈도우 (PowerShell):**
+
+```powershell
+# 영구 저장 (새로 여는 창부터 적용)
+setx AIRTABLE_API_KEY "patXXXXXXXXXXXXXX.XXXX..."
+
+# 지금 이 창에서 바로 쓰려면
+$env:AIRTABLE_API_KEY = "patXXXXXXXXXXXXXX.XXXX..."
 ```
 
 ### 3. Base 연결
@@ -56,7 +95,10 @@ export AIRTABLE_API_KEY="patXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 **단일 베이스 사용 시:**
 ```bash
 # Airtable URL에서 Base ID 확인: https://airtable.com/appXXXXXXXXXXXXXXX/...
-export AIRTABLE_BASE_ID="appXXXXXXXXXXXXXXX"
+export AIRTABLE_BASE_ID="appXXXXXXXXXXXXXXX"   # 맥
+```
+```powershell
+setx AIRTABLE_BASE_ID "appXXXXXXXXXXXXXXX"     # 윈도우 (새 창부터 적용)
 ```
 
 **여러 베이스 사용 시:**
@@ -75,7 +117,7 @@ export AIRTABLE_BASE_ID="appXXXXXXXXXXXXXXX"
 ### 4. 스키마 동기화
 
 ```bash
-cd ~/.claude/skills/airtable-sdk/scripts
+cd ~/.claude/skills/nodak-airtable/scripts
 bun run sync-schema.ts          # 기본 베이스
 bun run sync-schema.ts --all    # 멀티 베이스 전체
 ```
@@ -100,7 +142,7 @@ Claude가 이 파일을 읽고 필드명과 타입을 정확히 파악합니다.
 Claude 없이 직접 스크립트를 실행할 수도 있습니다:
 
 ```bash
-cd ~/.claude/skills/airtable-sdk/scripts
+cd ~/.claude/skills/nodak-airtable/scripts
 
 # 조회
 bun run read.ts --table Users --filter '{상태}="활성"'
@@ -126,12 +168,25 @@ bun run create-table.ts --name "NewTable" --fields '[{"name":"이름","type":"si
 bun run read.ts --base partners --table Users
 ```
 
+### 윈도우에서 JSON 인자 넘기기 — `@파일` 방식
+
+PowerShell/CMD는 `--fields '{"이름":"홍길동"}'` 같은 **인라인 JSON 따옴표가 깨진다.**
+윈도우에서는 JSON을 파일로 저장하고 `@경로`로 넘긴다 (모든 스크립트의 모든 JSON 인자 공통):
+
+```powershell
+'{"이름":"홍길동","이메일":"hong@example.com"}' | Out-File -Encoding utf8 fields.json
+bun run create.ts --table Users --fields @fields.json
+```
+
+값이 `@`로 시작하고 그 경로에 파일이 있으면 파일 내용으로 치환된다. 맥에서도 똑같이 동작한다.
+
+
 ---
 
 ## 파일 구조
 
 ```
-airtable-sdk/
+nodak-airtable/
 ├── SKILL.md                          # Claude가 읽는 스킬 정의
 ├── package.json                      # 의존성 (airtable SDK)
 ├── references/

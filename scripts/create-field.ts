@@ -7,11 +7,11 @@
  * 성공 후 자동으로 스키마를 동기화합니다 (--no-sync로 비활성화 가능).
  *
  * @usage
- * bun run skills/airtable-sdk/scripts/create-field.ts --table <name> --field '<json>'
- * bun run skills/airtable-sdk/scripts/create-field.ts --help
+ * bun run skills/nodak-airtable/scripts/create-field.ts --table <name> --field '<json>'
+ * bun run skills/nodak-airtable/scripts/create-field.ts --help
  *
  * @example
- * bun run skills/airtable-sdk/scripts/create-field.ts --table Users --field '{"name":"등급","type":"singleSelect","options":{"choices":[{"name":"일반"},{"name":"프리미엄"}]}}'
+ * bun run skills/nodak-airtable/scripts/create-field.ts --table Users --field '{"name":"등급","type":"singleSelect","options":{"choices":[{"name":"일반"},{"name":"프리미엄"}]}}'
  */
 
 import { resolve, dirname } from 'path'
@@ -65,7 +65,7 @@ async function main() {
 
   if (args.help) {
     printHelp(
-      'bun run skills/airtable-sdk/scripts/create-field.ts --table <name> --field \'<json>\'',
+      'bun run skills/nodak-airtable/scripts/create-field.ts --table <name> --field \'<json>\'',
       HELP_OPTIONS
     )
     console.log('Field JSON structure:')

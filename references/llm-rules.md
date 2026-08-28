@@ -21,6 +21,16 @@ SDK 스크립트 기반 Airtable 작업 시 LLM 에이전트가 따라야 할 �
 
 ---
 
+## 플랫폼 규칙 (윈도우)
+
+- 윈도우(PowerShell/CMD)에서 **JSON을 인라인 인자로 넘기지 말 것** — 셸이 따옴표를 깨뜨린다.
+- 대신 JSON을 UTF-8 파일로 저장하고 `@경로`를 넘긴다: `--fields @fields.json` `--records @records.json` `--ids @ids.json`
+- `parseArgs`가 `@`로 시작하는 값에 해당 파일이 있으면 내용으로 치환한다. 맥/리눅스에서도 동일하게 동작.
+- 환경변수: PowerShell은 `$env:AIRTABLE_API_KEY` (영구는 `setx`). `export`/`echo $VAR`는 안 먹는다.
+- 스킬 폴더: `%USERPROFILE%\.claude\skills` (`~/.claude/skills`와 같은 위치)
+
+---
+
 ## 스크립트 사용법
 
 ### 스키마 동기화
@@ -28,10 +38,10 @@ SDK 스크립트 기반 Airtable 작업 시 LLM 에이전트가 따라야 할 �
 **작업 전 항상 스키마 확인**:
 ```bash
 # 스키마 파일 존재 확인
-cat skills/airtable-sdk/references/schema-summary.json
+cat skills/nodak-airtable/references/schema-summary.json
 
 # 없거나 오래된 경우 동기화
-bun run skills/airtable-sdk/scripts/sync-schema.ts
+bun run skills/nodak-airtable/scripts/sync-schema.ts
 ```
 
 ### CRUD 스크립트
@@ -75,18 +85,45 @@ bun run read.ts --table Users --filter `{이름}="${safeInput}"`
 
 ---
 
+## Filter 패턴 주의사항
+
+### Lookup / Link 필드 필터링
+
+`{필드}="값"` 직접 비교는 **작동하지 않음**. Lookup/Link 필드는 배열로 반환되므로 반드시 `ARRAYJOIN` 또는 `FIND` 사용.
+
+**대상 필드 타입** (schema-full.json 에서 확인):
+- `multipleLookupValues` (lookup)
+- `multipleRecordLinks` (linked record)
+- `rollup`
+- `multipleSelects`
+
+```bash
+# BAD: 항상 0건 반환
+--filter '{기수}="22"'
+
+# GOOD: ARRAYJOIN으로 문자열화 후 비교
+--filter 'ARRAYJOIN({기수})="22"'
+
+# GOOD: 다중 값 중 하나 매칭 (부분일치)
+--filter 'FIND("22", ARRAYJOIN({기수}))'
+```
+
+**숫자 lookup 주의**: lookup 결과 타입이 number여도 `ARRAYJOIN`은 문자열 반환이라 따옴표 필수 (`="22"`).
+
+---
+
 ## 스키마 참조 규칙
 
 ### 작업 전 체크리스트
 
 1. **schema-summary.json 읽기** (필드명 확인용):
 ```bash
-cat skills/airtable-sdk/references/schema-summary.json
+cat skills/nodak-airtable/references/schema-summary.json
 ```
 
 2. **필드 타입 상세가 필요한 경우** (옵션, 링크 등):
 ```bash
-cat skills/airtable-sdk/references/schema-full.json
+cat skills/nodak-airtable/references/schema-full.json
 ```
 
 3. **필드명 오타 주의**: 스키마에 있는 정확한 필드명 사용
@@ -159,7 +196,7 @@ bun run read.ts --table Users --filter '{상태}="활성"' --max 20
 bun run read.ts --table Users --filter '{Stauts}="Active"'  # 오타!
 
 # GOOD: 스키마 먼저 확인
-cat skills/airtable-sdk/references/schema-summary.json
+cat skills/nodak-airtable/references/schema-summary.json
 bun run read.ts --table Users --filter '{Status}="Active"'
 ```
 
@@ -188,7 +225,7 @@ export AIRTABLE_BASE_ID="appXXXXX..."   # Base ID
 ### 스크립트 경로
 
 ```
-skills/airtable-sdk/scripts/
+skills/nodak-airtable/scripts/
 ├── lib/airtable.ts      # SDK 래퍼 (import용)
 ├── sync-schema.ts       # 스키마 동기화
 ├── create.ts            # 레코드 생성
@@ -201,7 +238,7 @@ skills/airtable-sdk/scripts/
 ### 스키마 파일
 
 ```
-skills/airtable-sdk/references/
+skills/nodak-airtable/references/
 ├── schema-summary.json  # 테이블/필드명 요약 (~500 토큰)
 ├── schema-full.json     # 전체 상세 (타입, 옵션 포함)
 └── llm-rules.md         # 이 문서
@@ -218,3 +255,4 @@ Airtable 작업 전 확인:
 - [ ] 필터와 maxRecords를 적절히 설정했는가?
 - [ ] 삭제 작업 시 `--confirm` 플래그 확인했는가?
 - [ ] 필드 에러 시 스키마 동기화 후 재시도했는가?
+- [ ] Lookup/Link 필드 필터 시 `ARRAYJOIN` 사용했는가?

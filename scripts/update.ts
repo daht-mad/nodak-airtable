@@ -4,13 +4,15 @@
  *
  * @description
  * 레코드를 수정합니다. 10건 초과 시 자동으로 배치 분할합니다.
+ * --dry-run 플래그로 실제 API 호출 없이 업데이트 예정 내용만 출력할 수 있습니다.
  *
  * @usage
- * bun run skills/airtable-sdk/scripts/update.ts --table <name> --records '<json>'
- * bun run skills/airtable-sdk/scripts/update.ts --help
+ * bun run skills/nodak-airtable/scripts/update.ts --table <name> --records '<json>' [--dry-run]
+ * bun run skills/nodak-airtable/scripts/update.ts --help
  *
  * @example
- * bun run skills/airtable-sdk/scripts/update.ts --table Users --records '[{"id":"recXXX","fields":{"상태":"비활성"}}]'
+ * bun run skills/nodak-airtable/scripts/update.ts --table Users --records '[{"id":"recXXX","fields":{"상태":"비활성"}}]'
+ * bun run skills/nodak-airtable/scripts/update.ts --table Users --records '[...]' --dry-run
  */
 
 import type { FieldSet } from 'airtable'
@@ -41,6 +43,15 @@ interface UpdateResult {
   recordIds: string[]
 }
 
+interface DryRunResult {
+  success: true
+  dryRun: true
+  plannedCount: number
+  batchCount: number
+  recordIds: string[]
+  fieldsPerRecord: Array<{ id: string; fieldKeys: string[] }>
+}
+
 // ============================================
 // Main
 // ============================================
@@ -49,6 +60,7 @@ const HELP_OPTIONS = [
   { flag: '--base <alias|id>', desc: 'Base alias or ID (optional)' },
   { flag: '--table <name>', desc: '테이블 이름 (필수)' },
   { flag: '--records <json>', desc: '수정할 레코드 배열 JSON (필수)' },
+  { flag: '--dry-run', desc: '실제 API 호출 없이 업데이트 예정 레코드 ID·필드 키만 출력' },
   { flag: '--help', desc: '도움말 출력' },
 ]
 
@@ -59,11 +71,11 @@ async function main() {
 
   if (args.help) {
     printHelp(
-      'bun run skills/airtable-sdk/scripts/update.ts --table <name> --records \'<json>\'',
+      'bun run skills/nodak-airtable/scripts/update.ts --table <name> --records \'<json>\'',
       HELP_OPTIONS
     )
     console.log('Example:')
-    console.log('  bun run skills/airtable-sdk/scripts/update.ts --table Users --records \'[{"id":"recXXX","fields":{"상태":"비활성"}}]\'')
+    console.log('  bun run skills/nodak-airtable/scripts/update.ts --table Users --records \'[{"id":"recXXX","fields":{"상태":"비활성"}}]\'')
     console.log('')
     console.log('Note: Maximum 10 records per batch (auto-split if more)')
     console.log('')
@@ -80,7 +92,10 @@ async function main() {
   }
 
   const baseArg = typeof args.base === 'string' ? args.base : undefined
-  validateEnv(baseArg)
+  const isDryRun = args['dry-run'] === true
+  if (!isDryRun) {
+    validateEnv(baseArg)
+  }
 
   let records: UpdateRecord[]
   try {
@@ -106,6 +121,24 @@ async function main() {
 
   if (records.length === 0) {
     exitWithError('No records to update (empty array)')
+  }
+
+  if (isDryRun) {
+    const batches = chunk(records, BATCH_SIZE)
+    const result: DryRunResult = {
+      success: true,
+      dryRun: true,
+      plannedCount: records.length,
+      batchCount: batches.length,
+      recordIds: records.map((r) => r.id),
+      fieldsPerRecord: records.map((r) => ({
+        id: r.id,
+        fieldKeys: Object.keys(r.fields),
+      })),
+    }
+    console.error(`[DRY-RUN] Would update ${records.length} records in ${batches.length} batch(es). No API call.`)
+    printJson(result)
+    return
   }
 
   try {

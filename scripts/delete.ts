@@ -7,11 +7,11 @@
  * 안전을 위해 --confirm 플래그가 필요합니다.
  *
  * @usage
- * bun run skills/airtable-sdk/scripts/delete.ts --table <name> --ids '<json>' --confirm
- * bun run skills/airtable-sdk/scripts/delete.ts --help
+ * bun run skills/nodak-airtable/scripts/delete.ts --table <name> --ids '<json>' --confirm
+ * bun run skills/nodak-airtable/scripts/delete.ts --help
  *
  * @example
- * bun run skills/airtable-sdk/scripts/delete.ts --table Users --ids '["recXXX","recYYY"]' --confirm
+ * bun run skills/nodak-airtable/scripts/delete.ts --table Users --ids '["recXXX","recYYY"]' --confirm
  */
 
 import {
@@ -55,11 +55,11 @@ async function main() {
 
   if (args.help) {
     printHelp(
-      'bun run skills/airtable-sdk/scripts/delete.ts --table <name> --ids \'<json>\' --confirm',
+      'bun run skills/nodak-airtable/scripts/delete.ts --table <name> --ids \'<json>\' --confirm',
       HELP_OPTIONS
     )
     console.log('Example:')
-    console.log('  bun run skills/airtable-sdk/scripts/delete.ts --table Users --ids \'["recXXX","recYYY"]\' --confirm')
+    console.log('  bun run skills/nodak-airtable/scripts/delete.ts --table Users --ids \'["recXXX","recYYY"]\' --confirm')
     console.log('')
     console.log('Note:')
     console.log('  - Maximum 10 records per batch (auto-split if more)')
@@ -81,7 +81,7 @@ async function main() {
     console.error('[WARNING] 삭제 작업은 되돌릴 수 없습니다!')
     console.error('')
     console.error('삭제를 진행하려면 --confirm 플래그를 추가하세요:')
-    console.error(`  bun run skills/airtable-sdk/scripts/delete.ts --table ${args.table} --ids '${args.ids}' --confirm`)
+    console.error(`  bun run skills/nodak-airtable/scripts/delete.ts --table ${args.table} --ids '${args.ids}' --confirm`)
     console.error('')
     process.exit(1)
   }

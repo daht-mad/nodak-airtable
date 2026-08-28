@@ -1,7 +1,7 @@
 /**
  * Airtable SDK Wrapper Library
  *
- * @module skills/airtable-sdk/scripts/lib/airtable
+ * @module skills/nodak-airtable/scripts/lib/airtable
  * @description
  * SDK 기반 Airtable 클라이언트.
  * - 지연 로딩 패턴으로 초기화
@@ -376,6 +376,10 @@ export function chunk<T>(array: T[], size = 10): T[][] {
  * const opts = parseArgs(Bun.argv)
  * // --table Users --filter '{상태}="활성"'
  * // => { table: 'Users', filter: '{상태}="활성"' }
+ *
+ * // 값이 @로 시작하고 그 경로에 파일이 있으면 파일 내용으로 치환된다.
+ * // 윈도우 PowerShell/CMD에서 JSON 인라인 따옴표가 깨질 때 사용:
+ * // --fields @fields.json  =>  { fields: '<fields.json 내용>' }
  */
 export function parseArgs(args: string[]): Record<string, string | boolean> {
   const result: Record<string, string | boolean> = {}
@@ -390,7 +394,13 @@ export function parseArgs(args: string[]): Record<string, string | boolean> {
       // 다음 인자가 값인지 또는 다른 플래그인지 확인
       const nextArg = scriptArgs[i + 1]
       if (nextArg && !nextArg.startsWith('--')) {
-        result[key] = nextArg
+        // @파일명 → 파일 내용으로 치환 (윈도우 셸 따옴표 이슈 우회용)
+        // 예: --fields @fields.json  ← JSON을 파일에 저장해두고 경로만 넘긴다
+        if (nextArg.startsWith('@') && existsSync(nextArg.slice(1))) {
+          result[key] = readFileSync(nextArg.slice(1), 'utf-8').trim()
+        } else {
+          result[key] = nextArg
+        }
         i++ // 값을 소비했으므로 인덱스 증가
       } else {
         // 값이 없으면 boolean true
