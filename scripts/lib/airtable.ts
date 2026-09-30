@@ -17,6 +17,7 @@
  * const safeInput = escapeFormulaValue(userInput)
  */
 
+import { SKILL_ENV_PATH } from './load-env' // 스킬 폴더 .env를 가장 먼저 읽는다
 import Airtable from 'airtable'
 import { readFileSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
@@ -159,7 +160,8 @@ export function validateEnv(baseArg?: string): void {
   if (!process.env.AIRTABLE_API_KEY) {
     console.error('[ERROR] Missing required environment variable: AIRTABLE_API_KEY')
     console.error('')
-    console.error('Please set: export AIRTABLE_API_KEY="pat_XXXXX..."')
+    console.error(`스킬 폴더 .env에 넣어주세요: ${SKILL_ENV_PATH}`)
+    console.error('  AIRTABLE_API_KEY=patXXXX...')
     process.exit(1)
   }
 

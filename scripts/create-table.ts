@@ -4,6 +4,8 @@
  * Usage: bun run create-table.ts --base <baseId> --name <tableName> --fields <fieldsJson>
  */
 
+import './lib/load-env'
+
 const args = process.argv.slice(2);
 
 function getArg(name: string): string | undefined {

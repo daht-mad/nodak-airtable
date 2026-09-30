@@ -1,6 +1,6 @@
 ---
 name: nodak-airtable
-description: SDK 스크립트 기반 Airtable CRUD 및 스키마 관리. MCP 없이 토큰 효율적으로 Airtable을 조작한다. 사용자가 "에어테이블", "airtable", "레코드 생성/조회/수정/삭제", "테이블 필드 추가" 등을 언급할 때 사용. 환경변수 AIRTABLE_API_KEY 필수. Multi-base 지원 (bases.json 또는 AIRTABLE_BASE_ID).
+description: SDK 스크립트 기반 Airtable CRUD 및 스키마 관리. MCP 없이 토큰 효율적으로 Airtable을 조작한다. 사용자가 "에어테이블", "airtable", "레코드 생성/조회/수정/삭제", "테이블 필드 추가" 등을 언급할 때 사용. 토큰은 스킬 폴더 .env(AIRTABLE_API_KEY) 또는 환경변수. Multi-base 지원 (bases.json 또는 AIRTABLE_BASE_ID).
 ---
 
 # Airtable SDK Skill
@@ -11,11 +11,22 @@ description: SDK 스크립트 기반 Airtable CRUD 및 스키마 관리. MCP 없
 
 ### 1. 사전 확인
 
+토큰은 **스킬 폴더의 `.env`** 에 둔다. 스크립트가 어디서 실행되든 이 파일을 자동으로 읽는다 (`scripts/lib/load-env.ts`). 환경변수에 이미 값이 있으면 그게 우선.
+
 ```bash
-echo $AIRTABLE_API_KEY
+cat <skill-dir>/.env 2>/dev/null | sed 's/=.*/=<set>/'   # 값은 절대 화면에 출력하지 말 것
 ```
 
 없으면 PAT 발급 안내: https://airtable.com/create/tokens
+
+**사용자가 채팅으로 토큰(`pat...`)을 주면** — 그 값을 `<skill-dir>/.env`에 아래 형식으로 저장하고, 답장에 토큰을 다시 적지 말 것. 저장 후 "붙여넣은 메시지는 지워달라"고 안내한다.
+
+```
+AIRTABLE_API_KEY=patXXXXXXXXXXXXXX.XXXXXXXX...
+AIRTABLE_BASE_ID=appXXXXXXXXXXXXXX
+```
+
+베이스 ID를 모르면 사용자에게 에어테이블 주소창의 `app`으로 시작하는 부분을 물어본다.
 
 **의존성 정합 (머신마다 1회, lock 갱신 pull 후엔 다시)**:
 

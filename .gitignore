@@ -1,0 +1,4 @@
+.env
+node_modules/
+references/bases.json
+references/schema-*.json
