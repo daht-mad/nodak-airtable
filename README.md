@@ -194,6 +194,8 @@ nodak-airtable/
 │   ├── schema-full.json              # 전체 스키마 상세 (자동 생성)
 │   ├── bases.json.example            # 멀티 베이스 설정 예시
 │   ├── llm-rules.md                  # LLM 에이전트용 API 규칙
+│   ├── setup-guide.md                # 처음 연결: 가입→베이스→토큰→봇에게 전달
+│   ├── relational-design-interview.md # 관계형 DB 설계 인터뷰 절차
 │   └── script-usage.md               # 스크립트 상세 사용법
 └── scripts/
     ├── lib/airtable.ts               # 공통 라이브러리 (인젝션 방지, Rate Limit)

@@ -1,11 +1,30 @@
 ---
 name: nodak-airtable
-description: SDK 스크립트 기반 Airtable CRUD 및 스키마 관리. MCP 없이 토큰 효율적으로 Airtable을 조작한다. 사용자가 "에어테이블", "airtable", "레코드 생성/조회/수정/삭제", "테이블 필드 추가" 등을 언급할 때 사용. 토큰은 스킬 폴더 .env(AIRTABLE_API_KEY) 또는 환경변수. Multi-base 지원 (bases.json 또는 AIRTABLE_BASE_ID).
+description: SDK 스크립트 기반 Airtable CRUD·스키마 관리 + 관계형 DB 설계 인터뷰. MCP 없이 토큰 효율적으로 Airtable을 조작한다. 사용자가 "에어테이블", "airtable", "레코드 생성/조회/수정/삭제", "테이블 필드 추가", "DB 설계", "표 짜줘", "테이블 설계" 등을 언급할 때, 또는 이 스킬이 막 설치됐을 때 사용. 토큰은 스킬 폴더 .env(AIRTABLE_API_KEY) 또는 환경변수. Multi-base 지원 (bases.json 또는 AIRTABLE_BASE_ID).
 ---
 
 # Airtable SDK Skill
 
 스크립트로 Airtable CRUD 수행. 스키마를 JSON으로 캐싱하여 토큰 절약.
+
+## 이 스킬이 뭐냐고 물으면
+
+사람이 "이거 무슨 스킬이야?"라고 물으면 아래를 **사람 말로** 짧게 설명하고, 마지막에 "뭘 기록하고 싶어?"로 넘어간다.
+
+- **에어테이블** = 엑셀처럼 생긴 온라인 표. 다른 점은 봇이 인터넷으로 직접 읽고 쓸 수 있다는 것
+- **이 스킬** = 그 표를 다루는 설명서 + 도구 상자. 레코드 읽기·쓰기·고치기·지우기, 테이블·칸 만들기를 명령 한 줄로 한다
+- **왜 필요하냐** = 봇은 대화가 끝나면 잊는다. 계속 쌓이는 기록(명단·출석·주문)은 대화창이 아니라 표에 둬야 한다
+- **할 수 있는 것 중 제일 중요한 것** = 사람 업무를 인터뷰해서 **관계형 DB**(테이블 여러 개를 링크로 이은 구조)를 같이 설계하고 직접 만든다
+
+## 설치 직후 / 처음 쓸 때 — 이 순서로 시작한다
+
+1. `.env` 확인 (아래 1번). **비어 있으면** [references/setup-guide.md](references/setup-guide.md) 순서대로 사람에게 한 단계씩 안내한다 — 가입 → 베이스 만들기 → 빌더 허브에서 토큰 발급 → 봇에게 전달
+2. 연결되면 `sync-schema.ts`로 확인하고 테이블 목록을 보여준다
+3. 베이스가 비어 있으면(테이블 없음 또는 기본 `Table 1`뿐) **먼저 묻는다**:
+   > "연결됐어! 이 베이스로 뭘 관리하고 싶어? 하는 일 얘기해주면 같이 표 구조부터 짜보자."
+4. 답이 오면 [references/relational-design-interview.md](references/relational-design-interview.md)대로 인터뷰한다. **설계안을 사람이 확인하기 전엔 테이블을 만들지 않는다.**
+
+"테이블 만들어줘"라는 요청도 구조가 정해지지 않았으면 같은 인터뷰부터 한다. 이미 구조가 있고 칸 하나 추가처럼 작은 요청이면 바로 한다.
 
 ## 워크플로우
 
@@ -17,7 +36,7 @@ description: SDK 스크립트 기반 Airtable CRUD 및 스키마 관리. MCP 없
 cat <skill-dir>/.env 2>/dev/null | sed 's/=.*/=<set>/'   # 값은 절대 화면에 출력하지 말 것
 ```
 
-없으면 PAT 발급 안내: https://airtable.com/create/tokens
+없으면 → [references/setup-guide.md](references/setup-guide.md) (가입부터 토큰 전달까지 사람이 할 4단계)
 
 **사용자가 채팅으로 토큰(`pat...`)을 주면** — 그 값을 `<skill-dir>/.env`에 아래 형식으로 저장하고, 답장에 토큰을 다시 적지 말 것. 저장 후 "붙여넣은 메시지는 지워달라"고 안내한다.
 
@@ -109,6 +128,9 @@ bun run create.ts --table Users --fields @fields.json
 4. **API로 삭제 안 되는 건 이름 앞에 `(삭제)` 붙이기** (닿 지시 2026-08-18): Airtable API는 (a) 필드/테이블 삭제, (b) 기존 singleSelect/multipleSelect 옵션의 편집·삭제(추가·이름·색·제거 전부)를 지원하지 않는다 — 시도하면 422 `"Changing a field's type..."`. 이런 걸 정리할 땐 지우지 말고 **이름(필드명·옵션명) 앞에 `(삭제) `를 붙여** 사용자가 UI에서 지우도록 표시. 필드명 rename은 `updateField` PATCH `{"name":"(삭제) ..."}`로 API 가능. 선택 필드를 옵션·색까지 새로 짜야 하면 **새 필드를 `createField`로 만들고**(생성 시엔 choices+color 지정 가능) 옛 필드에 `(삭제)` 접두.
 
 ## 참조 문서
+
+- **처음 연결 (사람이 할 일)**: [references/setup-guide.md](references/setup-guide.md)
+- **관계형 DB 설계 인터뷰**: [references/relational-design-interview.md](references/relational-design-interview.md)
 
 - **스크립트 상세 사용법**: [references/script-usage.md](references/script-usage.md)
 - **API 규칙 및 제약사항**: [references/llm-rules.md](references/llm-rules.md)
